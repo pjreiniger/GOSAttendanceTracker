@@ -20,9 +20,9 @@ from PyQt6.QtWidgets import (
     QApplication
 )
 
-from PyQt6.QtGui import QIcon, QPixmap, QFont
+from PyQt6.QtGui import QPixmap, QFont
 
-from PyQt6.QtCore import pyqtSlot, Qt, QObject, QThread, pyqtSignal
+from PyQt6.QtCore import Qt
 
 import datetime as dt
 
@@ -59,37 +59,6 @@ class App(QMainWindow):
         
         self.show()
 
-##class Worker(QThread):
-##    finished = pyqtSignal()
-##    progress = pyqtSignal(str)
-##
-####    def _init_(self):
-####        QThread._init_(self)
-####
-####    def _del_(self):
-####        self.wait()
-##
-##    
-##    
-##
-##    def logAttendance(self,SK, name, ID):
-##        self.progress.emit("Logging in...")
-##        sh = gc.open_by_key(SK)
-##        wl = sh.worksheets()
-##        date = dt.datetime.now()
-##        ds = wl[0]
-##        ds.append_row([date.strftime('%c'), ID, name, "General Meeting"])
-##        self.finished.emit()
-##
-####    def run(self):
-####        
-####        """Long-running task."""
-####        for i in range(5):
-####            sleep(1)
-####            self.progress.emit(i + 1)
-####        self.finished.emit()
-    
-
     
 class MyTableWidget(QWidget):
     
@@ -105,21 +74,12 @@ class MyTableWidget(QWidget):
         self.tab4 = QWidget()
         self.tab5 = QWidget()
         self.tabs.resize(WIDTH,HEIGHT)
-
-##        QWidget#tab1:pressed {
-##    background-color: rgb(224, 0, 0);
-##    border-style: inset;
-##}
         
         # Add tabs
         self.tabs.addTab(self.tab1,"Log Attendance")
         self.tabs.addTab(self.tab4, "SCRA Visitor Log")
         self.tabs.addTab(self.tab5, "Field Builders Login")
         self.tabs.addTab(self.tab2,"Lookup Fob Number")
-        #self.tabs.addTab(self.tab3,"Identify Fob")
-        
-
-        #self.tabs.setStyleSheet("QTabBar::tab { height: 150px;")#background-color: #ffffff;}")
 
         #--------------------
         # Tab 1 Content
@@ -182,11 +142,6 @@ class MyTableWidget(QWidget):
         #--------------------
         #Tab 2 Content
         #--------------------
-##        self.tab2.layout = QVBoxLayout(self)
-##        self.tab2.setLayout(self.tab2.layout)
-##        self.label = QLabel("Page Under Construction")
-##        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-##        self.tab2.layout.addWidget(self.label)
 
         self.tab2.layout = QGridLayout(self)
         self.tab2.setLayout(self.tab2.layout)
@@ -239,13 +194,6 @@ class MyTableWidget(QWidget):
         #--------------------
         #Tab 3 Content
         #--------------------
-##        self.tab3.layout = QVBoxLayout(self)
-##        self.tab3.setLayout(self.tab3.layout)
-##        self.tab3.setStyleSheet("background-color: #ffffff;")
-##        
-##        self.label2 = QLabel("Page Under Construction")
-##        self.label2.setAlignment(Qt.AlignmentFlag.AlignCenter)
-##        self.tab3.layout.addWidget(self.label2)
 
         self.tab3.layout = QGridLayout(self)
         self.tab3.setLayout(self.tab3.layout)
@@ -430,10 +378,6 @@ class MyTableWidget(QWidget):
         self.message5.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.tab5.layout.addWidget(self.message5, 4, 1)
 
-
-
-
-
         #--------------------
         # Add tabs to widget
         #--------------------
@@ -455,30 +399,6 @@ class MyTableWidget(QWidget):
         name = lookupName(ID)
 
         if (name != None):
-           
-##            self.thread = QThread()
-##            
-##            self.worker = Worker()
-##            self.worker.moveToThread(self.thread)
-##            self.thread.started.connect(#self.worker.run)
-##                lambda: self.worker.logAttendance(SPREADSHEET_KEY, name, ID)
-##            )
-##            self.worker.progress.connect(print)#self.message.setText)
-##            self.worker.finished.connect(self.thread.quit)
-##            self.worker.finished.connect(self.worker.deleteLater)
-##            self.thread.finished.connect(self.thread.deleteLater)
-##            
-##
-##            self.thread.start()
-##
-##            self.thread.finished.connect(
-##                lambda: self.message.setText(name + " is logged in.")
-##            )
-##
-##            self.thread.finished.connect(self.input.clear)
-            
-            #print("logging in")
-            #self.message.setText("Logging in...")
             
                 
             logAttendance(SPREADSHEET_KEY, name, ID)
@@ -648,17 +568,7 @@ if __name__ == '__main__':
     gc = gspread.service_account(filename='credentials.json')
 
     lastNames, firstNames, ids = updateIDData(SPREADSHEET_KEY)
-        
 
-    #print(lookupName(3504000028))
-    #print(lookupID("Rosie Riveter"))
-
-    #attendanceSheet = worksheet_list[0]
-
-    #date = dt.datetime.now()
-    #attendanceSheet.append_row([date.strftime('%c'), "010203390", "Elizabeth Kysel", "General Meeting"])
-    
-    #print(date)
     sys.exit(app.exec())
 
    
