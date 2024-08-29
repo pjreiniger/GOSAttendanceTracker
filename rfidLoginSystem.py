@@ -31,7 +31,7 @@ import datetime as dt
 # GLOBAL VARIABLES
 #-----------------------------------------------------------------------
 
-SPREADSHEET_KEY = "163-AIfY7czQUz-1WUggts3lUEXNV6TebKseutOeIeDI"
+SPREADSHEET_KEY = "1ztlyayX_A59oDQQsRPfWNKSZ-efkdWKgML-J9WtB66s"
 WIDTH = 800
 HEIGHT = 400
 
@@ -517,14 +517,13 @@ def lookupID(name):
 def updateIDData(SK):
     sh = gc.open_by_key(SK)
 
-    wl = sh.worksheets()
+    wl = sh.worksheet("Member Database")
     #print(wl)
 
-    ds = wl[1]
     #print(ds)
-    ln = ds.col_values(1)[1:]
-    fn = ds.col_values(2)[1:]
-    newIDs = ds.col_values(4)[1:]
+    ln = wl.col_values(1)[1:]
+    fn = wl.col_values(2)[1:]
+    newIDs = wl.col_values(4)[1:]
     #print(newIDs)
 
     for i in range(len(newIDs)):
@@ -535,25 +534,22 @@ def updateIDData(SK):
 
 def logAttendance(SK, name, ID):
     sh = gc.open_by_key(SK)
-    wl = sh.worksheets()
     date = dt.datetime.now()
-    ds = wl[0]
+    ds = sh.worksheet("GoS Attendance")
     ds.append_row([date.strftime('%c'), ID, name, "General Meeting"])
 
 
 def logVisitor(SK, name, team):
     sh = gc.open_by_key(SK)
-    wl = sh.worksheets()
     date = dt.datetime.now()
-    ds = wl[5]
+    ds = sh.worksheet("SCRA Visitor Attendance")
     ds.append_row([date.strftime('%c'), team, name, "SCRA Open Meeting"])
 
 
 def logBuilderInSheet(SK, name):
     sh = gc.open_by_key(SK)
-    wl = sh.worksheets()
     date = dt.datetime.now()
-    ds = wl[4]
+    ds = sh.worksheet("Field Builder Attendance")
     ds.append_row([date.strftime('%c'), name])
 
 
