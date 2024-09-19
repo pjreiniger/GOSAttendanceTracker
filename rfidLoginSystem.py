@@ -378,6 +378,12 @@ class MyTableWidget(QWidget):
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
 
+        self.input5.setFocus()
+        self.input4a.setFocus()
+        self.input3.setFocus()
+        self.input2.setFocus()
+        self.input.setFocus()
+
     def login(self):
         ID = self.input.text()
 
@@ -417,11 +423,13 @@ class MyTableWidget(QWidget):
             print("Name: " + name)
             self.input2.clear()
             self.message2.setText("ID Number: " + str(ID))
+            self.input2.setFocus()
 
         else:
             print("Error! ID number is not associated with a name.")
             self.message2.setText("Error! Name not found in database.")
             self.input2.clear()
+            self.input2.setFocus()
 
     def identifyFob(self):
         ID = self.input3.text()
@@ -464,6 +472,7 @@ class MyTableWidget(QWidget):
         self.input4a.clear()
         self.input4b.clear()
         self.message4.setText("Welcome " + name + "!")
+        self.input4a.setFocus()
 
     def logBuilder(self):
         name = self.input5.text()
@@ -477,6 +486,7 @@ class MyTableWidget(QWidget):
             logBuilderInSheet(SPREADSHEET_KEY, name)
             self.input5.clear()
             self.message5.setText(name + " is logged in.")
+            self.input5.setFocus()
 
 
 # -----------------------------------------------------------------------
