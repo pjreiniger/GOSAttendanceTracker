@@ -410,7 +410,9 @@ class MyTableWidget(QWidget):
         # If they double-tapped, don't log in twice
         if scanned_id_num == self.debounce_id:
             # Skip if now is less than 10 seconds after the last ID scanned
-            if dt.datetime.now() < self.debounce_time + dt.timedelta(seconds=DEBOUNCE_TIME):
+            if dt.datetime.now() < self.debounce_time + dt.timedelta(
+                seconds=DEBOUNCE_TIME
+            ):
                 self.input_gos_name.clear()
                 self.message_gos_login.setText(f"{self.debounce_name} already tapped.")
                 self.debounce_time = dt.datetime.now()  # Refresh debounce time again
@@ -528,6 +530,7 @@ class MyTableWidget(QWidget):
 
 # def lookupID(fname, lname):
 #     pass
+
 
 def lookup_name(id_number):
     # print(ids)
