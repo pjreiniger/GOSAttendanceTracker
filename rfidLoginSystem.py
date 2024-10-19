@@ -1,14 +1,14 @@
 # -----------------------------------------------------------------------
 # IMPORTS
 # -----------------------------------------------------------------------
-
+import datetime as dt
 import sys
 
 import gspread
-
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtWidgets import (
     QMainWindow,
-    QApplication,
     QPushButton,
     QWidget,
     QTabWidget,
@@ -20,13 +20,6 @@ from PyQt6.QtWidgets import (
     QApplication,
 )
 
-from PyQt6.QtGui import QPixmap, QFont
-
-from PyQt6.QtCore import Qt
-
-import datetime as dt
-
-
 # -----------------------------------------------------------------------
 # GLOBAL VARIABLES
 # -----------------------------------------------------------------------
@@ -34,6 +27,7 @@ import datetime as dt
 SPREADSHEET_KEY = "1ztlyayX_A59oDQQsRPfWNKSZ-efkdWKgML-J9WtB66s"
 WIDTH = 800
 HEIGHT = 400
+DEBOUNCE_TIME = 10  # Seconds between double-taps
 
 
 # -----------------------------------------------------------------------
@@ -60,6 +54,9 @@ class App(QMainWindow):
 
 
 class MyTableWidget(QWidget):
+    debounce_id = 0
+    debounce_time = dt.datetime.now()
+    debounce_name = ""
 
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
@@ -95,14 +92,15 @@ class MyTableWidget(QWidget):
 
         self.header = QLabel("Log your attendance at today's GoS meeting!")
         self.header.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        headerFont = QFont()
-        headerFont.setBold(True)
-        self.header.setFont(headerFont)
+        header_font = QFont()
+        header_font.setBold(True)
+        self.header.setFont(header_font)
         self.header.setStyleSheet("font-size: 35pt;")
         self.tab_log_attendance.layout.addWidget(self.header, 1, 1)
 
         self.instructions = QLabel(
-            "Tap your fob to the reader to log in, or type in the number associated with your fob.\nIt may take a second or two for the log in to process."
+            "Tap your fob to the reader to log in, or type in the number associated with your fob.\nIt may take a "
+            "second or two for the log in to process."
         )
         self.instructions.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.instructions.setStyleSheet("font-size: 25pt;")
@@ -117,19 +115,19 @@ class MyTableWidget(QWidget):
         self.input_gos_name.setFixedWidth(250)
         self.input_gos_name.setFixedHeight(40)
         self.input_gos_name.setStyleSheet("font-size: 25pt;")
-        self.input_gos_name.returnPressed.connect(self.login)
+        self.input_gos_name.returnPressed.connect(self.login)  # type: ignore
         self.input_gos_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.input_area_gos_login.layout.addWidget(self.input_gos_name, 0, 1)
 
         self.btn_login_gos = QPushButton("Login")
         self.btn_login_gos.setStyleSheet("font-size: 25pt;")
-        self.btn_login_gos.clicked.connect(self.login)
+        self.btn_login_gos.clicked.connect(self.login)  # type: ignore
         self.input_area_gos_login.layout.addWidget(self.btn_login_gos, 1, 1)
 
         self.btn_clear_gos_name = QPushButton("Clear")
         self.btn_clear_gos_name.setStyleSheet("font-size: 25pt;")
-        self.btn_clear_gos_name.clicked.connect(self.input_gos_name.clear)
-        self.btn_clear_gos_name.clicked.connect(
+        self.btn_clear_gos_name.clicked.connect(self.input_gos_name.clear)  # type: ignore
+        self.btn_clear_gos_name.clicked.connect(  # type: ignore
             lambda: self.message_gos_login.setText("")
         )
         self.input_area_gos_login.layout.addWidget(self.btn_clear_gos_name, 2, 1)
@@ -149,7 +147,7 @@ class MyTableWidget(QWidget):
 
         self.header_lookup_fob = QLabel("Forgot your fob? Not a problem!")
         self.header_lookup_fob.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.header_lookup_fob.setFont(headerFont)
+        self.header_lookup_fob.setFont(header_font)
         self.header_lookup_fob.setStyleSheet("font-size: 35pt;")
         self.tab_lookup_fob.layout.addWidget(self.header_lookup_fob, 1, 1)
 
@@ -168,20 +166,20 @@ class MyTableWidget(QWidget):
         self.input_fob_lookup = QLineEdit()
         self.input_fob_lookup.setFixedWidth(250)
         self.input_fob_lookup.setFixedHeight(40)
-        self.input_fob_lookup.returnPressed.connect(self.searchID)
+        self.input_fob_lookup.returnPressed.connect(self.search_id)  # type: ignore
         # self.input.setStyleSheet("height: 100px;")
         self.input_fob_lookup.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.input_fob_lookup.setStyleSheet("font-size: 25pt;")
         self.input_area_lookup_fob.layout.addWidget(self.input_fob_lookup, 0, 1)
 
         self.btn_search_fob = QPushButton("Search")
-        self.btn_search_fob.clicked.connect(self.searchID)
+        self.btn_search_fob.clicked.connect(self.search_id)  # type: ignore
         self.btn_search_fob.setStyleSheet("font-size: 25pt;")
         self.input_area_lookup_fob.layout.addWidget(self.btn_search_fob, 1, 1)
 
         self.btn_clear_lookup_fob = QPushButton("Clear")
-        self.btn_clear_lookup_fob.clicked.connect(self.input_fob_lookup.clear)
-        self.btn_clear_lookup_fob.clicked.connect(
+        self.btn_clear_lookup_fob.clicked.connect(self.input_fob_lookup.clear)  # type: ignore
+        self.btn_clear_lookup_fob.clicked.connect(  # type: ignore
             lambda: self.message_fob_lookup.setText("")
         )
         self.btn_clear_lookup_fob.setStyleSheet("font-size: 25pt;")
@@ -205,7 +203,7 @@ class MyTableWidget(QWidget):
 
         self.header_lost_fob = QLabel("Found a lost fob, but don't know whose it is?")
         self.header_lost_fob.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.header_lost_fob.setFont(headerFont)
+        self.header_lost_fob.setFont(header_font)
         self.header_lost_fob.setStyleSheet("font-size: 35pt;")
         self.tab_identify_fob.layout.addWidget(self.header_lost_fob, 1, 1)
 
@@ -225,17 +223,17 @@ class MyTableWidget(QWidget):
         self.input_identify_fob.setFixedWidth(250)
         self.input_identify_fob.setFixedHeight(40)
         self.input_identify_fob.setStyleSheet("font-size: 25pt;")
-        self.input_identify_fob.returnPressed.connect(self.identifyFob)
+        self.input_identify_fob.returnPressed.connect(self.identify_fob)  # type: ignore
         self.input_identify_fob.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.input_area_search_fob.layout.addWidget(self.input_identify_fob, 0, 1)
 
         self.searchButton3 = QPushButton("Search")
-        self.searchButton3.clicked.connect(self.identifyFob)
+        self.searchButton3.clicked.connect(self.identify_fob)  # type: ignore
         self.searchButton3.setStyleSheet("font-size: 25pt;")
         self.input_area_search_fob.layout.addWidget(self.searchButton3, 1, 1)
 
         self.clearButton3 = QPushButton("Clear")
-        self.clearButton3.clicked.connect(self.input_identify_fob.clear)
+        self.clearButton3.clicked.connect(self.input_identify_fob.clear)  # type: ignore
         self.clearButton3.setStyleSheet("font-size: 25pt;")
         self.input_area_search_fob.layout.addWidget(self.clearButton3, 2, 1)
 
@@ -251,9 +249,9 @@ class MyTableWidget(QWidget):
         self.tab_scra_visitor_log.setLayout(self.tab_scra_visitor_log.layout)
         self.tab_scra_visitor_log.setStyleSheet("background-color: #fceb7c;")
 
-        ##        self.label4 = QLabel("Page Under Construction")
-        ##        self.label4.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        ##        self.tab4.layout.addWidget(self.label4)
+        #        self.label4 = QLabel("Page Under Construction")
+        #        self.label4.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        #        self.tab4.layout.addWidget(self.label4)
 
         self.scra_logo = QLabel(self)
         self.scra_pixmap = QPixmap("SCRA2.png")
@@ -268,9 +266,9 @@ class MyTableWidget(QWidget):
 
         self.header_scra_signin = QLabel("SCRA Open Meeting Sign-In")
         self.header_scra_signin.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        headerFont4 = QFont()
-        headerFont4.setBold(True)
-        self.header_scra_signin.setFont(headerFont)
+        header_font4 = QFont()
+        header_font4.setBold(True)
+        self.header_scra_signin.setFont(header_font)
         self.header_scra_signin.setStyleSheet("font-size: 35pt;")
         self.signinBox4.layout.addWidget(self.header_scra_signin, 0, 0)
 
@@ -293,7 +291,7 @@ class MyTableWidget(QWidget):
         self.input_visit_name.setFixedWidth(250)
         self.input_visit_name.setFixedHeight(40)
         self.input_visit_name.setStyleSheet("font-size: 25pt;")
-        self.input_visit_name.returnPressed.connect(self.logVisit)
+        self.input_visit_name.returnPressed.connect(self.log_visit)  # type: ignore
         self.input_visit_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.inputArea4.layout.addWidget(self.input_visit_name, 0, 2)
 
@@ -301,21 +299,21 @@ class MyTableWidget(QWidget):
         self.input_visit_team.setFixedWidth(250)
         self.input_visit_team.setFixedHeight(40)
         self.input_visit_team.setStyleSheet("font-size: 25pt;")
-        self.input_visit_team.returnPressed.connect(self.logVisit)
+        self.input_visit_team.returnPressed.connect(self.log_visit)  # type: ignore
         self.input_visit_team.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.inputArea4.layout.addWidget(self.input_visit_team, 1, 2)
 
         self.btn_scra_login = QPushButton("Submit")
         self.btn_scra_login.setFixedWidth(250)
         self.btn_scra_login.setStyleSheet("font-size: 25pt;")
-        self.btn_scra_login.clicked.connect(self.logVisit)
+        self.btn_scra_login.clicked.connect(self.log_visit)  # type: ignore
         self.signinBox4.layout.addWidget(self.btn_scra_login, 2, 1)
 
         self.btn_scra_clear = QPushButton("Clear")
         self.btn_scra_clear.setFixedWidth(250)
         self.btn_scra_clear.setStyleSheet("font-size: 25pt;")
-        self.btn_scra_clear.clicked.connect(self.input_gos_name.clear)
-        self.btn_scra_clear.clicked.connect(lambda: self.message_visit.setText(""))
+        self.btn_scra_clear.clicked.connect(self.input_gos_name.clear)  # type: ignore
+        self.btn_scra_clear.clicked.connect(lambda: self.message_visit.setText(""))  # type: ignore
         self.signinBox4.layout.addWidget(self.btn_scra_clear, 4, 1)
 
         self.message_visit = QLabel("")
@@ -338,9 +336,9 @@ class MyTableWidget(QWidget):
 
         self.header_field_builder = QLabel("\nWelcome, Practice Field Builder!")
         self.header_field_builder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        headerFont5 = QFont()
-        headerFont5.setBold(True)
-        self.header_field_builder.setFont(headerFont5)
+        header_font5 = QFont()
+        header_font5.setBold(True)
+        self.header_field_builder.setFont(header_font5)
         self.header_field_builder.setStyleSheet("font-size: 35pt;")
         self.tab_field_builders.layout.addWidget(self.header_field_builder, 1, 1)
 
@@ -360,19 +358,19 @@ class MyTableWidget(QWidget):
         self.input_builder_name.setFixedWidth(250)
         self.input_builder_name.setFixedHeight(40)
         self.input_builder_name.setStyleSheet("font-size: 25pt;")
-        self.input_builder_name.returnPressed.connect(self.logBuilder)
+        self.input_builder_name.returnPressed.connect(self.log_builder)  # type: ignore
         self.input_builder_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.inputArea5.layout.addWidget(self.input_builder_name, 0, 1)
 
         self.loginButton5 = QPushButton("Log Attendance")
         self.loginButton5.setStyleSheet("font-size: 25pt;")
-        self.loginButton5.clicked.connect(self.logBuilder)
+        self.loginButton5.clicked.connect(self.log_builder)  # type: ignore
         self.inputArea5.layout.addWidget(self.loginButton5, 1, 1)
 
         self.btn_clear_field_builder = QPushButton("Clear")
         self.btn_clear_field_builder.setStyleSheet("font-size: 25pt;")
-        self.btn_clear_field_builder.clicked.connect(self.input_gos_name.clear)
-        self.btn_clear_field_builder.clicked.connect(
+        self.btn_clear_field_builder.clicked.connect(self.input_gos_name.clear)  # type: ignore
+        self.btn_clear_field_builder.clicked.connect(  # type: ignore
             lambda: self.message_builder.setText("")
         )
         self.inputArea5.layout.addWidget(self.btn_clear_gos_name, 2, 1)
@@ -395,48 +393,65 @@ class MyTableWidget(QWidget):
         self.input_gos_name.setFocus()
 
     def login(self):
-        ID = self.input_gos_name.text()
+        scanned_id_num = self.input_gos_name.text()
 
-        if ID == "":
+        self.message_gos_login.setText("Please wait...")
+        self.message_gos_login.repaint()
+
+        if scanned_id_num == "":
             self.message_gos_login.setText("")
             return None
 
         try:
-            ID = int(ID)
+            scanned_id_num = int(scanned_id_num)
         except:
             self.message_gos_login.setText("Make sure the input is a number.")
 
-        name = lookupName(ID)
+        # If they double-tapped, don't log in twice
+        if scanned_id_num == self.debounce_id:
+            # Skip if now is less than 10 seconds after the last ID scanned
+            if dt.datetime.now() < self.debounce_time + dt.timedelta(
+                seconds=DEBOUNCE_TIME
+            ):
+                self.input_gos_name.clear()
+                self.message_gos_login.setText(f"{self.debounce_name} already tapped.")
+                self.debounce_time = dt.datetime.now()  # Refresh debounce time again
+                return None
 
-        if name != None:
+        name = lookup_name(scanned_id_num)
 
-            logAttendance(SPREADSHEET_KEY, name, ID)
+        if name is not None:
+
+            return_value = log_attendance(SPREADSHEET_KEY, name, scanned_id_num)
             self.input_gos_name.clear()
-            self.message_gos_login.setText(name + " is logged in.")
+            self.message_gos_login.setText(return_value)
+            self.debounce_id = scanned_id_num
+            self.debounce_time = dt.datetime.now()
+            self.debounce_name = name
 
         else:
             print("Error! ID number is not associated with a name.")
             self.message_gos_login.setText("Error! Problem logging in.")
             self.input_gos_name.clear()
 
-    def searchID(self):
+    def search_id(self):
         # print("HI")
         name = self.input_fob_lookup.text()
-        ID = lookupID(name)
+        id_num = lookup_id(name)
 
         if name == "":
             self.message_fob_lookup.setText("")
             return None
 
-        if ID != None:
+        if id_num is not None:
 
             print("Name: " + name)
             self.input_fob_lookup.clear()
-            self.message_fob_lookup.setText("ID Number: " + str(ID))
+            self.message_fob_lookup.setText("ID Number: " + str(id_num))
             self.input_fob_lookup.setFocus()
 
             # Log in the user, then switch back to the main tab
-            logAttendance(SPREADSHEET_KEY, name, ID)
+            log_attendance(SPREADSHEET_KEY, name, id_num)
             self.tabs.setCurrentIndex(0)
             self.input_gos_name.clear()
             self.message_gos_login.setText(name + " is logged in.")
@@ -447,25 +462,25 @@ class MyTableWidget(QWidget):
             self.input_fob_lookup.clear()
             self.input_fob_lookup.setFocus()
 
-    def identifyFob(self):
-        ID = self.input_identify_fob.text()
+    def identify_fob(self):
+        id_num = self.input_identify_fob.text()
 
-        if ID == "":
+        if id_num == "":
             self.message_identify_fob.setText("")
             return None
 
         try:
-            ID = int(ID)
+            id_num = int(id_num)
         except:
             self.message_identify_fob.setText("Make sure the input is a number.")
 
-        name = lookupName(ID)
+        name = lookup_name(id_num)
 
-        if name != None:
+        if name is not None:
 
             self.input_identify_fob.clear()
             self.message_identify_fob.setText(
-                "Fob " + str(ID) + " belongs to " + name + "."
+                "Fob " + str(id_num) + " belongs to " + name + "."
             )
 
         else:
@@ -474,7 +489,7 @@ class MyTableWidget(QWidget):
             )
             self.input_identify_fob.clear()
 
-    def logVisit(self):
+    def log_visit(self):
         team = self.input_visit_team.text()
         name = self.input_visit_name.text()
 
@@ -488,13 +503,13 @@ class MyTableWidget(QWidget):
             )
             return None
 
-        logVisitor(SPREADSHEET_KEY, name, team)
+        log_visitor(SPREADSHEET_KEY, name, team)
         self.input_visit_name.clear()
         self.input_visit_team.clear()
         self.message_visit.setText("Welcome " + name + "!")
         self.input_visit_name.setFocus()
 
-    def logBuilder(self):
+    def log_builder(self):
         name = self.input_builder_name.text()
 
         if name == "":
@@ -503,7 +518,7 @@ class MyTableWidget(QWidget):
 
         else:
 
-            logBuilderInSheet(SPREADSHEET_KEY, name)
+            log_builder_in_sheet(SPREADSHEET_KEY, name)
             self.input_builder_name.clear()
             self.message_builder.setText(name + " is logged in.")
             self.input_builder_name.setFocus()
@@ -513,22 +528,21 @@ class MyTableWidget(QWidget):
 # GOOGLE SPREADSHEET CODE
 # -----------------------------------------------------------------------
 
-##def lookupID(fname, lname):
-##    pass
-##
+# def lookupID(fname, lname):
+#     pass
 
 
-def lookupName(idNumber):
+def lookup_name(id_number):
     # print(ids)
     for i in range(len(ids)):
         # print (ids[i])
-        if ids[i] == idNumber:
+        if ids[i] == id_number:
             return firstNames[i] + " " + lastNames[i]
 
     return None
 
 
-def lookupID(name):
+def lookup_id(name):
     for i in range(len(firstNames)):
         if (firstNames[i] + " " + lastNames[i]) == name:
             return ids[i]
@@ -536,43 +550,68 @@ def lookupID(name):
     return None
 
 
-def updateIDData(SK):
-    sh = gc.open_by_key(SK)
+def update_id_data(service_key):
+    google_sheet = connection.open_by_key(service_key)
 
-    wl = sh.worksheet("Member Database")
+    worksheet = google_sheet.worksheet("Member Database")
     # print(wl)
 
     # print(ds)
-    ln = wl.col_values(1)[1:]
-    fn = wl.col_values(2)[1:]
-    newIDs = wl.col_values(4)[1:]
+    last_name = worksheet.col_values(1)[1:]
+    first_name = worksheet.col_values(2)[1:]
+    new_ids = worksheet.col_values(4)[1:]
     # print(newIDs)
 
-    for i in range(len(newIDs)):
-        newIDs[i] = int(newIDs[i])
+    for i in range(len(new_ids)):
+        new_ids[i] = int(new_ids[i])
 
-    return ln, fn, newIDs
-
-
-def logAttendance(SK, name, ID):
-    sh = gc.open_by_key(SK)
-    date = dt.datetime.now()
-    ds = sh.worksheet("GoS Attendance")
-    ds.append_row([date.strftime("%c"), ID, name, "General Meeting"])
+    return last_name, first_name, new_ids
 
 
-def logVisitor(SK, name, team):
-    sh = gc.open_by_key(SK)
-    date = dt.datetime.now()
-    ds = sh.worksheet("SCRA Visitor Attendance")
-    ds.append_row([date.strftime("%c"), team, name, "SCRA Open Meeting"])
+def log_attendance(service_key, name, id_num):
+    # Get sheet
+    google_sheet = connection.open_by_key(service_key)
+    current_time = dt.datetime.now()
+    sheet_tab = google_sheet.worksheet("GoS Attendance")
+
+    # Find all rows with student's name
+    cell_list = sheet_tab.findall(name)
+    if cell_list:
+        # User has logged in before
+        last_cell = cell_list[-1]
+        last_row_num = last_cell.row
+        last_row = sheet_tab.row_values(last_row_num)
+        last_logged_date = dt.datetime.strptime(last_row[0], "%c")
+        today = dt.date.today()
+
+        if today == last_logged_date.date():
+            if len(last_row) == 4:
+                # They logged in today so log them out
+                sheet_tab.update_cell(last_row_num, 5, current_time.strftime("%c"))
+                return f"{name} is logged out."
+            elif len(last_row) != 5:
+                print("Error! ID number is not associated with a name.")
+                return "Error! Problem logging in."
+
+    # They logged in and out today, so add another row OR...
+    # They haven't logged in today, so log them in OR...
+    # User never logged in. Just add it.
+    sheet_tab.append_row([current_time.strftime("%c"), id_num, name, "General Meeting"])
+    return f"{name} is logged in."
 
 
-def logBuilderInSheet(SK, name):
-    sh = gc.open_by_key(SK)
-    date = dt.datetime.now()
-    ds = sh.worksheet("Field Builder Attendance")
-    ds.append_row([date.strftime("%c"), name])
+def log_visitor(service_key, name, team):
+    google_sheet = connection.open_by_key(service_key)
+    current_time = dt.datetime.now()
+    sheet_tab = google_sheet.worksheet("SCRA Visitor Attendance")
+    sheet_tab.append_row([current_time.strftime("%c"), team, name, "SCRA Open Meeting"])
+
+
+def log_builder_in_sheet(service_key, name):
+    google_sheet = connection.open_by_key(service_key)
+    current_time = dt.datetime.now()
+    sheet_tab = google_sheet.worksheet("Field Builder Attendance")
+    sheet_tab.append_row([current_time.strftime("%c"), name])
 
 
 # -----------------------------------------------------------------------
@@ -582,8 +621,8 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     ex = App()
 
-    gc = gspread.service_account(filename="credentials.json")
+    connection = gspread.service_account(filename="credentials.json")
 
-    lastNames, firstNames, ids = updateIDData(SPREADSHEET_KEY)
+    lastNames, firstNames, ids = update_id_data(SPREADSHEET_KEY)
 
     sys.exit(app.exec())
