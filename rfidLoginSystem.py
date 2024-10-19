@@ -1,14 +1,14 @@
 # -----------------------------------------------------------------------
 # IMPORTS
 # -----------------------------------------------------------------------
-
+import datetime as dt
 import sys
 
 import gspread
-
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtWidgets import (
     QMainWindow,
-    QApplication,
     QPushButton,
     QWidget,
     QTabWidget,
@@ -19,12 +19,6 @@ from PyQt6.QtWidgets import (
     QLabel,
     QApplication,
 )
-
-from PyQt6.QtGui import QPixmap, QFont
-
-from PyQt6.QtCore import Qt
-
-import datetime as dt
 
 # -----------------------------------------------------------------------
 # GLOBAL VARIABLES
@@ -418,7 +412,7 @@ class MyTableWidget(QWidget):
             # Skip if now is less than 10 seconds after the last ID scanned
             if dt.datetime.now() < self.debounce_time + dt.timedelta(seconds=DEBOUNCE_TIME):
                 self.input_gos_name.clear()
-                self.message_gos_login.setText(f"{self.debounce_name} already logged in.")
+                self.message_gos_login.setText(f"{self.debounce_name} already tapped.")
                 self.debounce_time = dt.datetime.now()  # Refresh debounce time again
                 return None
 
@@ -426,9 +420,9 @@ class MyTableWidget(QWidget):
 
         if name is not None:
 
-            log_attendance(SPREADSHEET_KEY, name, scanned_id_num)
+            return_value = log_attendance(SPREADSHEET_KEY, name, scanned_id_num)
             self.input_gos_name.clear()
-            self.message_gos_login.setText(name + " is logged in.")
+            self.message_gos_login.setText(return_value)
             self.debounce_id = scanned_id_num
             self.debounce_time = dt.datetime.now()
             self.debounce_name = name
@@ -572,11 +566,35 @@ def update_id_data(service_key):
 
 
 def log_attendance(service_key, name, id_num):
+    # Get sheet
     google_sheet = connection.open_by_key(service_key)
     current_time = dt.datetime.now()
     sheet_tab = google_sheet.worksheet("GoS Attendance")
 
+    # Find all rows with student's name
+    cell_list = sheet_tab.findall(name)
+    if cell_list:
+        # User has logged in before
+        last_cell = cell_list[-1]
+        last_row_num = last_cell.row
+        last_row = sheet_tab.row_values(last_row_num)
+        last_logged_date = dt.datetime.strptime(last_row[0], "%c")
+        today = dt.date.today()
+
+        if today == last_logged_date.date():
+            if len(last_row) == 4:
+                # They logged in today so log them out
+                sheet_tab.update_cell(last_row_num, 5, current_time.strftime("%c"))
+                return f"{name} is logged out."
+            elif len(last_row) != 5:
+                print("Error! ID number is not associated with a name.")
+                return "Error! Problem logging in."
+
+    # They logged in and out today, so add another row OR...
+    # They haven't logged in today, so log them in OR...
+    # User never logged in. Just add it.
     sheet_tab.append_row([current_time.strftime("%c"), id_num, name, "General Meeting"])
+    return f"{name} is logged in."
 
 
 def log_visitor(service_key, name, team):
