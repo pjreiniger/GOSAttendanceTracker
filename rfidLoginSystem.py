@@ -397,6 +397,9 @@ class MyTableWidget(QWidget):
     def login(self):
         ID = self.input_gos_name.text()
 
+        self.message_gos_login.setText("Please wait...")
+        self.message_gos_login.repaint()
+
         if ID == "":
             self.message_gos_login.setText("")
             return None
