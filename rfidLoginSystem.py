@@ -34,6 +34,7 @@ import datetime as dt
 SPREADSHEET_KEY = "1ztlyayX_A59oDQQsRPfWNKSZ-efkdWKgML-J9WtB66s"
 WIDTH = 800
 HEIGHT = 400
+DEBOUNCE_TIME = 10              # Seconds between double-taps
 
 
 # -----------------------------------------------------------------------
@@ -60,6 +61,9 @@ class App(QMainWindow):
 
 
 class MyTableWidget(QWidget):
+    debounce_id = 0
+    debounce_time = dt.datetime.now()
+    debounce_name = ""
 
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
@@ -395,27 +399,39 @@ class MyTableWidget(QWidget):
         self.input_gos_name.setFocus()
 
     def login(self):
-        ID = self.input_gos_name.text()
+        scanned_id_num = self.input_gos_name.text()
 
         self.message_gos_login.setText("Please wait...")
         self.message_gos_login.repaint()
 
-        if ID == "":
+        if scanned_id_num == "":
             self.message_gos_login.setText("")
             return None
 
         try:
-            ID = int(ID)
+            scanned_id_num = int(scanned_id_num)
         except:
             self.message_gos_login.setText("Make sure the input is a number.")
 
-        name = lookupName(ID)
+        # If they double-tapped, don't log in twice
+        if scanned_id_num == self.debounce_id:
+            # Skip if now is less than 10 seconds after the last ID scanned
+            if dt.datetime.now() < self.debounce_time + dt.timedelta(seconds=DEBOUNCE_TIME):
+                self.input_gos_name.clear()
+                self.message_gos_login.setText(f"{self.debounce_name} already logged in.")
+                self.debounce_time = dt.datetime.now()       # Refresh debounce time again
+                return None
+
+        name = lookupName(scanned_id_num)
 
         if name != None:
 
-            logAttendance(SPREADSHEET_KEY, name, ID)
+            logAttendance(SPREADSHEET_KEY, name, scanned_id_num)
             self.input_gos_name.clear()
             self.message_gos_login.setText(name + " is logged in.")
+            self.debounce_id = scanned_id_num
+            self.debounce_time = dt.datetime.now()
+            self.debounce_name = name
 
         else:
             print("Error! ID number is not associated with a name.")
