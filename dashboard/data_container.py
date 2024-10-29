@@ -1,6 +1,5 @@
 
-# from backend.sheets_backend import GoogleSheetsBackend
-from backend.local_backend import LocalBackend
+from backend.sheets_backend import GoogleSheetsBackend
 import pandas as pd
 import datetime
 
@@ -11,8 +10,8 @@ NO_LOGOUT_HOURS_ASSUMPTION = 2
 
 class DataContainer:
     def __init__(self):
-        backend = LocalBackend()
-        # backend = GoogleSheetsBackend()
+        # backend = LocalBackend()
+        backend = GoogleSheetsBackend()
 
         self.gos_attendance = backend.load_gos_attendance()
 
