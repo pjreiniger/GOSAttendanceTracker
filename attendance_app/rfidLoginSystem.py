@@ -631,7 +631,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     ex = App()
 
-    connection = gspread.service_account(filename="credentials.json")
+    connection = gspread.service_account(filename="../credentials.json")
 
     lastNames, firstNames, ids = update_id_data(SPREADSHEET_KEY)
 

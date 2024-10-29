@@ -48,7 +48,7 @@ jobs:
           echo "${{ env.API_KEY }}" > credentials.json
 
       - name: Export Shiny App
-        run: shinylive export . site
+        run: shinylive export attendance_app site
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
