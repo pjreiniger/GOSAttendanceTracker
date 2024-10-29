@@ -4,7 +4,7 @@ import pandas as pd
 import datetime
 
 
-STRIP_NAMES = False
+STRIP_NAMES = True
 NO_LOGOUT_HOURS_ASSUMPTION = 2
 
 
