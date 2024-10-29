@@ -4,7 +4,11 @@ from dashboard.data_container import data_container
 import pandas as pd
 
 
-from dashboard.plotting import create_gos_attendance_plot, create_gos_hours_per_meeting_plot, create_gos_hours_sum_plot
+from dashboard.plotting import (
+    create_gos_attendance_plot,
+    create_gos_hours_per_meeting_plot,
+    create_gos_hours_sum_plot,
+)
 from dashboard.utils import get_gos_user_data
 
 
@@ -92,5 +96,4 @@ def gos_student_tab_server(input: Inputs, output: Outputs, session: Session):
     @render.text
     def hours_logged():
         user_data = filter_by_user()
-        print(user_data.sum(numeric_only=True)['Hours Attended'])
         return f"{user_data.sum(numeric_only=True)['Hours Attended']:.2f}"

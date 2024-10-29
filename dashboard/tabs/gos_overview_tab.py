@@ -9,61 +9,66 @@ from dashboard.data_container import data_container, STRIP_NAMES
 @module.ui
 def gos_overview_tab_ui():
     return ui.page_fluid(
-            ui.layout_column_wrap(
-                ui.value_box(
-                    "Days Attended",
-                    ui.output_text("days_attended"),
-                ),
-                ui.value_box(
-                    "Hours Logged",
-                    ui.output_text("hours_logged"),
-                ),
+        ui.layout_column_wrap(
+            ui.value_box(
+                "Days Attended",
+                ui.output_text("days_attended"),
             ),
-            ui.card(
-                ui.card_header("Hours"),
-                output_widget("hours_plot"),
-                full_screen=True,
+            ui.value_box(
+                "Hours Logged",
+                ui.output_text("hours_logged"),
             ),
-            ui.card(
-                ui.card_header("Attendance / Day"),
-                output_widget("attendance_per_day_plot"),
-                full_screen=True,
-            ),
-            # ui.card(
-            #     ui.card_header("Hours / Meeting"),
-            #     output_widget("hours_per_meeting_plot"),
-            #     full_screen=True,
-            # ),
-            # ui.card(
-            #     ui.card_header("Cumulative Hours"),
-            #     output_widget("cumulative_hours_plot"),
-            #     full_screen=True,
-            # ),
-            ui.card(
-                ui.card_header("Raw Data"),
-                ui.output_data_frame("raw_data"),
-                full_screen=True,
-            ),
-        )
-
+        ),
+        ui.card(
+            ui.card_header("Hours"),
+            output_widget("hours_plot"),
+            full_screen=True,
+        ),
+        ui.card(
+            ui.card_header("Attendance / Day"),
+            output_widget("attendance_per_day_plot"),
+            full_screen=True,
+        ),
+        # ui.card(
+        #     ui.card_header("Hours / Meeting"),
+        #     output_widget("hours_per_meeting_plot"),
+        #     full_screen=True,
+        # ),
+        # ui.card(
+        #     ui.card_header("Cumulative Hours"),
+        #     output_widget("cumulative_hours_plot"),
+        #     full_screen=True,
+        # ),
+        ui.card(
+            ui.card_header("Raw Data"),
+            ui.output_data_frame("raw_data"),
+            full_screen=True,
+        ),
+    )
 
 
 @module.server
 def gos_overview_tab_server(input: Inputs, output: Outputs, session: Session):
     @render_widget
     def attendance_per_day_plot():
-        week_df = data_container.gos_attendance.groupby(data_container.gos_attendance['Date In'].dt.day_name()).count()
-        return px.pie(week_df, values="Date In", names=week_df.index, title="Attendance / Day")
-
+        week_df = data_container.gos_attendance.groupby(
+            data_container.gos_attendance["Date In"].dt.day_name()
+        ).count()
+        return px.pie(
+            week_df, values="Date In", names=week_df.index, title="Attendance / Day"
+        )
 
     @render_widget
     def hours_plot():
         groupby_key = "ID" if STRIP_NAMES else "Student Name"
-        grouped_data = data_container.gos_attendance.groupby(groupby_key).sum(numeric_only=True)
+        grouped_data = data_container.gos_attendance.groupby(groupby_key).sum(
+            numeric_only=True
+        )
         grouped_data = grouped_data.sort_values("Hours Attended")
 
-        return px.bar(grouped_data, y="Hours Attended", x=[str(x) for x in grouped_data.index])
-
+        return px.bar(
+            grouped_data, y="Hours Attended", x=[str(x) for x in grouped_data.index]
+        )
 
     @render.text
     def days_attended():

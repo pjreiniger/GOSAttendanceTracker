@@ -1,5 +1,4 @@
-from shiny import App, reactive, render, ui
-from datetime import datetime
+from shiny import App, ui
 
 from dashboard.tabs.gos_overview_tab import gos_overview_tab_ui, gos_overview_tab_server
 from dashboard.tabs.gos_student_tab import gos_student_tab_ui, gos_student_tab_server
@@ -8,7 +7,6 @@ from dashboard.tabs.gos_student_tab import gos_student_tab_ui, gos_student_tab_s
 app_ui = ui.page_navbar(
     ui.nav_panel("GOS Overview", gos_overview_tab_ui("gos_overview_tab")),
     ui.nav_panel("GOS Student", gos_student_tab_ui("gos_student_tab")),
-
 )
 
 
